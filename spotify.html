@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Le mie top canzoni Spotify</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #fff;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+  
+    h1 {
+      text-align: center;
+      color: #1DB954;
+      margin-bottom: 2rem;
+    }
+  
+    label, select {
+      font-size: 1rem;
+    }
+  
+    select {
+      background-color: #282828;
+      color: #fff;
+      border: 1px solid #1DB954;
+      padding: 0.5rem;
+      border-radius: 5px;
+      margin-left: 0.5rem;
+      margin-bottom: 1rem;
+    }
+  
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+  
+    li {
+      background-color: #1e1e1e;
+      margin: 0.5rem 0;
+      padding: 1rem;
+      border-left: 5px solid #1DB954;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+  
+    li:hover {
+      background-color: #2a2a2a;
+    }
+
+    .track-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .track-rank {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #1DB954;
+      width: 2rem;
+      text-align: center;
+    }
+
+    .track-cover {
+      width: 64px;
+      height: 64px;
+      border-radius: 5px;
+      object-fit: cover;
+    }
+
+    .track-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .track-name a {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #1DB954;
+      text-decoration: none;
+    }
+
+    .track-name a:hover {
+      text-decoration: underline;
+    }
+
+    .track-artist {
+      font-size: 0.95rem;
+      color: #ccc;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #121212;
+      color: #fff;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #1DB954;
+      margin-bottom: 2rem;
+    }
+  </style>
+  
+</head>
+<body>
+    <!-- Intestazione con nome utente -->
+  <h1 id="intestazione">Le statistiche di ...</h1>
+
+  <label for="tipo">Mostra:</label>
+  <select id="tipo">
+    <option value="tracks" selected>Canzoni</option>
+    <option value="artists">Artisti</option>
+  </select>
+
+  <label for="periodo">Scegli il periodo:</label>
+  <select id="periodo">
+    <option value="short_term">Ultimo mese</option>
+    <option value="medium_term">Ultimi 6 mesi</option>
+    <option value="long_term" selected>Di sempre</option>
+  </select>
+
+  <ul id="top-list"></ul>
+    
+
+<script type="module">
+    const token = 'BQBBzDEC5Bs4oEUEUJY62yT_CEI3A13ivYV1R-NUjkCBz0Xx7ecm_fP6XsszI6MINLabFYxbuldlXCrplAl8haIZvVZ6OUKdkNFoLwZd7JhjTSS02dxZTK127AUoYuzaAEhxNxIF8V-u7yFptueO0L9xNRWRFuCRcH_YfhNg5QSnuQbo3rl4hu0H-v4xSfQbSlvkQkbMvYEyEtuDXr1-zmGTYw_SHqDzzcymKt0_l_3LVYpsIKcllv_9BywviAz-uQR3gQooO2VXFLhK1Oqc4cINFiZpfkXTIBD10fzG9LBQEOc-TYMEUUqFpRN5fZW8kPx5u0yF';
+
+    async function fetchWebApi(endpoint, method = 'GET', body = null) {
+    const res = await fetch(`https://api.spotify.com/${endpoint}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      method,
+      body: body ? JSON.stringify(body) : null
+    });
+    return await res.json();
+  }
+
+  // Nuova funzione per prendere il profilo utente
+  async function getUserProfile() {
+    return await fetchWebApi('v1/me');
+  }
+
+  async function getTopTracks(timeRange = 'long_term') {
+    return (await fetchWebApi(`v1/me/top/tracks?time_range=${timeRange}&limit=50`)).items;
+  }
+
+  async function getTopArtists(timeRange = 'long_term') {
+    return (await fetchWebApi(`v1/me/top/artists?time_range=${timeRange}&limit=50`)).items;
+  }
+
+  function mostraCanzoni(tracks) {
+    const lista = document.getElementById('top-list');
+    lista.innerHTML = '';
+    tracks.forEach((track, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="track-item">
+          <div class="track-rank">${index + 1}</div>
+          <img src="${track.album.images[1]?.url || track.album.images[0].url}" alt="Cover ${track.name}" class="track-cover" />
+          <div class="track-info">
+            <div class="track-name">
+              <a href="${track.external_urls.spotify}" target="_blank" rel="noopener noreferrer">${track.name}</a>
+            </div>
+            <div class="track-artist">${track.artists.map(a => a.name).join(', ')}</div>
+          </div>
+        </div>
+      `;
+      lista.appendChild(li);
+    });
+  }
+
+  function mostraArtisti(artists) {
+    const lista = document.getElementById('top-list');
+    lista.innerHTML = '';
+    artists.forEach((artist, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div class="track-item">
+          <div class="track-rank">${index + 1}</div>
+          <img src="${artist.images[1]?.url || artist.images[0].url}" alt="Foto di ${artist.name}" class="track-cover" />
+          <div class="track-info">
+            <div class="track-name">
+              <a href="${artist.external_urls.spotify}" target="_blank" rel="noopener noreferrer">${artist.name}</a>
+            </div>
+          </div>
+        </div>
+      `;
+      lista.appendChild(li);
+    });
+  }
+
+  async function aggiornaLista() {
+    const tipo = document.getElementById('tipo').value;
+    const periodo = document.getElementById('periodo').value;
+
+    if (tipo === 'tracks') {
+      const tracks = await getTopTracks(periodo);
+      mostraCanzoni(tracks);
+    } else {
+      const artists = await getTopArtists(periodo);
+      mostraArtisti(artists);
+    }
+  }
+
+  // Carica e mostra il nome utente nell'intestazione
+  async function caricaProfilo() {
+    try {
+      const user = await getUserProfile();
+      const header = document.getElementById('intestazione');
+      header.textContent = `Le statistiche di ${user.display_name || user.id}`;
+    } catch (e) {
+      console.error('Errore nel caricamento profilo:', e);
+    }
+  }
+
+  // All’avvio
+  caricaProfilo();
+  aggiornaLista();
+
+  // Event listener
+  document.getElementById('tipo').addEventListener('change', aggiornaLista);
+  document.getElementById('periodo').addEventListener('change', aggiornaLista);
+
+
+</script>
+</body>
+</html>
